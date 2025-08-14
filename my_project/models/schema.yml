@@ -1,61 +1,58 @@
 version: 2
 
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: raw_yolo_detections
+        description: Raw object detection results from YOLOv8 model on Telegram images.
+        columns:
+          - name: message_id
+            description: Original Telegram message ID associated with the image.
+            tests:
+              - not_null
+          - name: detected_object_class
+            description: Class of the object detected by YOLO (e.g., 'person', 'car', 'pill').
+            tests:
+              - not_null
+          - name: confidence_score
+            description: Confidence score of the detection (0-1).
+            tests:
+              - not_null
+              - dbt_utils.not_negative
+              - dbt_utils.at_least_one
+
 models:
-  - name: stg_telegram_messages
-    description: Cleaned and standardized staging table for Telegram messages.
+
+  - name: stg_yolo_detections
+    description: Cleaned and standardized staging table for YOLO object detections.
     columns:
+      - name: image_detection_pk
+        description: Primary key for the image detection staging table.
+        tests:
+          - unique
+          - not_null
       - name: message_id
-        description: Unique identifier for the message from Telegram.
-        tests:
-          - unique
-          - not_null
-      - name: message_timestamp
-        description: Timestamp when the message was posted.
+        description: Original Telegram message ID associated with the image.
         tests:
           - not_null
-      - name: channel_id
-        description: Unique identifier for the Telegram channel.
+      - name: detected_object_class
+        description: Class of the object detected by YOLO.
         tests:
           - not_null
-      - name: message_text
-        description: The content of the message.
-      - name: views_count
-        description: Number of views the message received.
-      - name: has_media
-        description: Boolean indicating if the message contains any media.
+      - name: confidence_score
+        description: Confidence score of the detection.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0.0
+              max_value: 1.0
 
-  - name: dim_channels
-    description: Dimension table containing information about Telegram channels.
+  - name: fct_image_detections
+    description: Fact table containing detailed information about objects detected in Telegram images.
     columns:
-      - name: channel_id
-        description: Primary key for the channel dimension table (Telegram channel ID).
-        tests:
-          - unique
-          - not_null
-      - name: channel_username
-        description: Telegram username of the channel.
-      - name: channel_title
-        description: Display title of the Telegram channel.
-
-  - name: dim_dates
-    description: Standard date dimension table.
-    columns:
-      - name: date_day
-        description: The actual date.
-        tests:
-          - unique
-          - not_null
-      - name: date_key
-        description: Integer representation of the date (YYYYMMDD).
-        tests:
-          - unique
-          - not_null
-
-  - name: fct_messages
-    description: Fact table containing key metrics for each Telegram message.
-    columns:
-      - name: message_pk
-        description: Primary key for the fact messages table (composite of message_id and channel_id).
+      - name: image_detection_pk
+        description: Primary key for the image detections fact table.
         tests:
           - unique
           - not_null
@@ -63,21 +60,18 @@ models:
         description: Original Telegram message ID.
         tests:
           - not_null
-      - name: channel_id
-        description: Foreign key to dim_channels.
+      - name: message_pk
+        description: Foreign key to the fct_messages table.
         tests:
           - not_null
           - relationships:
-              to: ref('dim_channels')
-              field: channel_id
-      - name: date_key
-        description: Foreign key to dim_dates.
+              to: ref('fct_messages')
+              field: message_pk
+      - name: detected_object_class
+        description: Class of the object detected (e.g., 'pill', 'cream', 'syringe').
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_dates')
-              field: date_key
-      - name: message_length
-        description: Length of the message text in characters.
+      - name: confidence_score
+        description: Confidence score of the detection.
         tests:
-          - positive_value # Custom test
+          - not_null

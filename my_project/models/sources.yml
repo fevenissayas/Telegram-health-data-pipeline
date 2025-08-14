@@ -14,3 +14,4 @@ sources:
               - not_null
           - name: scraped_date
             description: Date the message was scraped from the data lake path.
+      - name: raw_yolo_detections
