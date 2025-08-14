@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: raw_telegram_messages
+        description: Raw messages scraped from Telegram channels.
+        columns:
+          - name: message_id
+            description: Unique ID of the Telegram message.
+            tests:
+              - unique
+              - not_null
+          - name: scraped_date
+            description: Date the message was scraped from the data lake path.
