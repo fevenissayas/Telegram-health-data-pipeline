@@ -23,7 +23,6 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 def create_raw_yolo_table(cursor):
-    """Creates the raw.raw_yolo_detections table if it doesn't exist."""
     create_table_sql = """
     CREATE SCHEMA IF NOT EXISTS raw;
     CREATE TABLE IF NOT EXISTS raw.raw_yolo_detections (
