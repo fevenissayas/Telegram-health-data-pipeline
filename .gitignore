@@ -1,2 +1,5 @@
 .venv/
 data/
+logs/
+*.session
+.env
