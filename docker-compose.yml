@@ -1,0 +1,28 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medical_data_scraper_app
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - db
+    command: tail -f /dev/null
+
+  db:
+    image: postgres:13
+    container_name: medical_data_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data 
+    ports:
+      - "5431:5432"
+
+volumes:
+  postgres_data:
